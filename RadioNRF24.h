@@ -443,6 +443,6 @@ public:
   }
 };
 
-static RadioClass Radio;
+static RadioClass RadioNRF24;
 
 #endif
