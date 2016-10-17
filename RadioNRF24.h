@@ -28,14 +28,17 @@ class NRFProtocol
 {
 private:
   uint8_t _CSNPin;
+  const SPISettings NRF_SPIConfig;
 
 public:
+  NRFProtocol(): NRF_SPIConfig(10000000, MSBFIRST, SPI_MODE0) {
+
+  }
+
   void begin(uint8_t CSNPin)
   {
     _CSNPin = CSNPin;
     SPI.begin();
-    SPI.setDataMode(SPI_MODE0);
-    SPI.setClockDivider(SPI_2XCLOCK_MASK);
 
     pinMode(_CSNPin, OUTPUT);
     digitalWrite(_CSNPin, HIGH);
@@ -43,33 +46,40 @@ public:
 
   uint8_t commandWrite0(uint8_t command)
   {
+    SPI.beginTransaction(NRF_SPIConfig);
     digitalWrite(_CSNPin, LOW);
     uint8_t status = SPI.transfer(command);
     digitalWrite(_CSNPin, HIGH);
+    SPI.endTransaction();
     return status;
   }
 
   uint8_t commandWrite1(uint8_t command, uint8_t value)
   {
+    SPI.beginTransaction(NRF_SPIConfig);
     digitalWrite(_CSNPin, LOW);
     uint8_t status = SPI.transfer(command);
     SPI.transfer(value);
     digitalWrite(_CSNPin, HIGH);
+    SPI.endTransaction();
     return status;
   }
 
   struct NRFResponse commandRead1(uint8_t command)
   {
+    SPI.beginTransaction(NRF_SPIConfig);
     digitalWrite(_CSNPin, LOW);
     struct NRFResponse response;
     response.status = SPI.transfer(command);
     response.value = SPI.transfer(0);
     digitalWrite(_CSNPin, HIGH);
+    SPI.endTransaction();
     return response;
   }
 
   uint8_t commandWriteMany(uint8_t command, uint8_t *values, uint8_t size)
   {
+    SPI.beginTransaction(NRF_SPIConfig);
     digitalWrite(_CSNPin, LOW);
     uint8_t status = SPI.transfer(command);
     for (uint8_t i=0; i<size; i++)
@@ -77,11 +87,13 @@ public:
       SPI.transfer(values[i]);
     }
     digitalWrite(_CSNPin, HIGH);
+    SPI.endTransaction();
     return status;
   }
 
   uint8_t commandReadMany(uint8_t command, uint8_t *values, uint8_t size)
   {
+    SPI.beginTransaction(NRF_SPIConfig);
     digitalWrite(_CSNPin, LOW);
     uint8_t status = SPI.transfer(command);
     for (uint8_t i=0; i<size; i++)
@@ -89,6 +101,7 @@ public:
       values[i] = SPI.transfer(0);
     }
     digitalWrite(_CSNPin, HIGH);
+    SPI.endTransaction();
     return status;
   }
 
